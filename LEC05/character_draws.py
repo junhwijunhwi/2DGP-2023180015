@@ -20,6 +20,17 @@ def move_top():
     print('TOP')
     for x in range(50,750,5):
        draw_character(x,550)
+       
+def move_right():
+    print('RIGHT')
+    pass
+def move_left():
+    print('LEFT')
+    pass
+def move_bottom():
+    print('BOTTOM')
+    pass
+
         
 def draw_character(x,y):
     clear_canvas()
