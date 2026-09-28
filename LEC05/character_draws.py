@@ -53,7 +53,9 @@ def move_rectangle():
 
 def move_straight():
     print('STRAIGHT')
-    pass
+    for x in range(50,750,5):
+        draw_character(x,50)
+    
 def move_topmiddle():
     print('TOPMIDDLE')
     pass
