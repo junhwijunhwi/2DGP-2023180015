@@ -1,7 +1,7 @@
 from pico2d import *
 import math
 
-open_canvas(1000, 600)
+open_canvas(800, 600)
 
 character = load_image('character.png')
 
@@ -53,7 +53,7 @@ def move_rectangle():
 
 def move_straight():
     print('STRAIGHT')
-    for x in range(50,750,5):
+    for x in range(50,1000,5):
         draw_character(x,50)
     
 def move_topmiddle():
