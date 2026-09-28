@@ -60,12 +60,12 @@ def move_topmiddle():#위쪽 꼭짓점방향
     print('TOPMIDDLE')
     for i in range(750,400,-5):
         x = i
-        y = abs(800 - i) 
+        y = 800 - i
         draw_character(x,y)
     
 def move_base():#캐릭터 시작위치 방향
     print('BASE')
-    for i in range(600,50,-5):
+    for i in range(400,50,-5):
         draw_character(i,i)
 
 def move_triangle():
