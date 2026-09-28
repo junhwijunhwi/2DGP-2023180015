@@ -17,10 +17,16 @@ def move_circle():
         character.draw(x,y)
         update_canvas()
         delay(0.05)
+        
 
 
 def move_rectangle():
     print("RECTANGLE")
+    move_top()
+    move_right()
+    move_bottom()
+    move_left()
+
     pass
 
 def move_triangle():
@@ -28,7 +34,7 @@ def move_triangle():
     pass
 
 while True:
-    move_circle()
+    # move_circle()
     move_rectangle()
     move_triangle()
     pass
