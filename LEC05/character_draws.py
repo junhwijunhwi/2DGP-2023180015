@@ -18,12 +18,12 @@ def move_circle():
 
 def move_top():
     print('TOP')
-    for x in range(50,750,5):
-       draw_character(x,550)
-       
+   
 def move_right():
     print('RIGHT')
-    pass
+    for x in range(50,750,5):
+        draw_character(x,550)
+        pass
 def move_left():
     print('LEFT')
     pass
