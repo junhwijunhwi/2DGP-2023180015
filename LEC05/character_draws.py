@@ -59,8 +59,8 @@ def move_straight():
 def move_topmiddle():
     print('TOPMIDDLE')
     for i in range(750,400,-5):
-        x = 750 + i
-        y = 50 - i 
+        x = i
+        y = abs(800 - i) 
         draw_character(x,y)
     
 def move_base():
