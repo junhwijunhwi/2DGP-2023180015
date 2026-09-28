@@ -18,7 +18,8 @@ def move_circle():
 
 def move_top():
     print('TOP')
-    
+    for y in range(50,550,5):
+        draw_character(50,y)
            
 def move_right():
     print('RIGHT')
