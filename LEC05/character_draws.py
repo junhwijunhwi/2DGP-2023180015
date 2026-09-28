@@ -53,7 +53,11 @@ def move_rectangle():
 
 def move_triangle():
     print("TRIANGLE")
+    move_straight()
+    move_topmiddle()
+    move_base()
     pass
+
 
 while True:
     # move_circle()
