@@ -50,20 +50,20 @@ def move_rectangle():
     move_left()
     move_top()
     pass
-
-def move_straight():
+    
+def move_straight():#오른쪽 방향
     print('STRAIGHT')
-    for x in range(50,1000,5):
+    for x in range(50,750,5):
         draw_character(x,50)
     
-def move_topmiddle():
+def move_topmiddle():#위쪽 꼭짓점방향
     print('TOPMIDDLE')
     for i in range(750,400,-5):
         x = i
         y = abs(800 - i) 
         draw_character(x,y)
     
-def move_base():
+def move_base():#캐릭터 시작위치 방향
     print('BASE')
     for i in range(400,50,-5):
         draw_character(i,i)
