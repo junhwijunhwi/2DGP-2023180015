@@ -51,6 +51,16 @@ def move_rectangle():
     move_top()
     pass
 
+def move_straight():
+    print('STRAIGHT')
+    pass
+def move_topmiddle():
+    print('TOPMIDDLE')
+    pass
+def move_base():
+    print('BASE')
+    pass
+
 def move_triangle():
     print("TRIANGLE")
     move_straight()
