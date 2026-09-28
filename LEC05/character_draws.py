@@ -65,7 +65,7 @@ def move_topmiddle():#위쪽 꼭짓점방향
     
 def move_base():#캐릭터 시작위치 방향
     print('BASE')
-    for i in range(400,50,-5):
+    for i in range(600,50,-5):
         draw_character(i,i)
 
 def move_triangle():
@@ -79,7 +79,7 @@ def move_triangle():
 while True:
     # move_circle()
     # move_rectangle()
-    # move_triangle()
+    move_triangle()
     pass
 
 close_canvas()
