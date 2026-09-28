@@ -65,7 +65,10 @@ def move_topmiddle():
     
 def move_base():
     print('BASE')
-    pass
+    for i in range(400,50,-5):
+        x = i
+        y = i 
+        draw_character(x,y)
 
 def move_triangle():
     print("TRIANGLE")
