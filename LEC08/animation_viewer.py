@@ -150,7 +150,25 @@ def handle_events(p2d, player):
     return True
 
 
-def draw_status(font, player):
+def load_status_font(p2d):
+    windows_fonts = Path(environ.get('WINDIR', 'C:/Windows')) / 'Fonts'
+    candidates = (
+        (windows_fonts / 'malgun.ttf', True),
+        (Path('/System/Library/Fonts/AppleSDGothicNeo.ttc'), True),
+        (Path('/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc'), True),
+        (windows_fonts / 'arial.ttf', False),
+        (Path('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'), False),
+    )
+    for path, korean in candidates:
+        if path.is_file():
+            try:
+                return p2d.load_font(str(path), 20), korean
+            except OSError:
+                continue
+    return None, False
+
+
+def status_lines(player, korean=True):
     animation = player.animation
     loop = min(player.completed_loops + 1, REPEAT_COUNT)
     if player.paused:
@@ -159,10 +177,30 @@ def draw_status(font, player):
         state = f'1초 정지 · 다음 동작까지 {TRANSITION_PAUSE - player.elapsed:.1f}초'
     else:
         state = '재생 중'
-    font.draw(28, 568, f'애니메이션 뷰어  |  {animation.name}', (30, 40, 55))
-    font.draw(28, 538, f'반복 {loop} / {REPEAT_COUNT}   ·   프레임 {player.frame_index + 1} / {len(animation.frames)}   ·   {state}', (30, 40, 55))
-    font.draw(28, 42, 'Space 일시정지 / 재개   ·   R 다시 재생   ·   → 다음 동작', (30, 40, 55))
-    font.draw(28, 16, '1 걷기   2 달리기   3 점프   4 공격   ·   ESC 종료', (30, 40, 55))
+    if korean:
+        return (
+            f'애니메이션 뷰어  |  {animation.name}',
+            f'반복 {loop} / {REPEAT_COUNT}   ·   프레임 {player.frame_index + 1} / {len(animation.frames)}   ·   {state}',
+            'Space 일시정지 / 재개   ·   R 다시 재생   ·   → 다음 동작',
+            '1 걷기   2 달리기   3 점프   4 공격   ·   ESC 종료',
+        )
+    names = ('Walk', 'Run', 'Jump', 'Attack')
+    state = ('Paused' if player.paused else
+             f'Wait {TRANSITION_PAUSE - player.elapsed:.1f}s' if player.waiting else 'Playing')
+    return (
+        f'Animation Viewer  |  {names[player.animation_index]}',
+        f'Loop {loop}/{REPEAT_COUNT}  |  Frame {player.frame_index + 1}/{len(animation.frames)}  |  {state}',
+        'Space: pause/resume   R: restart   Right: next',
+        '1: Walk   2: Run   3: Jump   4: Attack   ESC: quit',
+    )
+
+
+def draw_status(p2d, font, player, korean=True):
+    lines = status_lines(player, korean)
+    p2d.SDL_SetWindowTitle(p2d.window, f'{lines[0]} | {lines[1]}'.encode('utf-8'))
+    if font is not None:
+        for y, line in zip((568, 538, 42, 16), lines):
+            font.draw(28, y, line, (30, 40, 55))
 
 
 def main():
@@ -171,8 +209,7 @@ def main():
     p2d.open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     try:
         character = p2d.load_image(str(Path(__file__).with_name('Robot_sprite_sheet.png')))
-        font_path = Path(environ.get('WINDIR', 'C:/Windows')) / 'Fonts' / 'malgun.ttf'
-        font = p2d.load_font(str(font_path), 20)
+        font, korean = load_status_font(p2d)
         player = AnimationPlayer()
         previous_time = perf_counter()
         while handle_events(p2d, player):
@@ -181,7 +218,7 @@ def main():
             previous_time = current_time
             p2d.clear_canvas()
             draw_frame(character, player.frame)
-            draw_status(font, player)
+            draw_status(p2d, font, player, korean)
             p2d.update_canvas()
             sleep(1 / 120)
     except KeyboardInterrupt:
