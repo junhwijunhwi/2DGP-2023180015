@@ -7,6 +7,8 @@ CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
 SCALE = 5
 GROUND_Y = CANVAS_HEIGHT / 2 - 84 * SCALE / 2
+REPEAT_COUNT = 5
+TRANSITION_PAUSE = 1.0
 
 
 @dataclass(frozen=True)
@@ -84,6 +86,8 @@ class AnimationPlayer:
         self.animation_index = 0
         self.frame_index = 0
         self.elapsed = 0.0
+        self.completed_loops = 0
+        self.waiting = False
 
     @property
     def animation(self):
@@ -95,12 +99,24 @@ class AnimationPlayer:
 
     def update(self, dt):
         self.elapsed += dt
-        while self.elapsed + 1e-9 >= self.animation.frame_seconds:
-            self.elapsed = max(0.0, self.elapsed - self.animation.frame_seconds)
-            self.frame_index += 1
-            if self.frame_index == len(self.animation.frames):
-                self.frame_index = 0
+        while True:
+            duration = TRANSITION_PAUSE if self.waiting else self.animation.frame_seconds
+            if self.elapsed + 1e-9 < duration:
+                break
+            self.elapsed = max(0.0, self.elapsed - duration)
+            if self.waiting:
                 self.animation_index = (self.animation_index + 1) % len(self.animations)
+                self.frame_index = 0
+                self.completed_loops = 0
+                self.waiting = False
+            elif self.frame_index + 1 < len(self.animation.frames):
+                self.frame_index += 1
+            else:
+                self.completed_loops += 1
+                if self.completed_loops == REPEAT_COUNT:
+                    self.waiting = True
+                else:
+                    self.frame_index = 0
 
 
 def main():
