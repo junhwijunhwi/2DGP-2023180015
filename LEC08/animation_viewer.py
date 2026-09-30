@@ -1,40 +1,71 @@
 from pathlib import Path
+from dataclasses import dataclass
 
 from pico2d import *
 
 
-FRAME_WIDTH = 80
-FRAME_HEIGHT = 105
-# 아래쪽 행부터 각 행에 들어 있는 프레임 수
-FRAME_COUNTS = (8, 6, 6, 8)
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
 SCALE = 5
+GROUND_Y = CANVAS_HEIGHT / 2 - 84 * SCALE / 2
 
 
-def play_animation(character, row):
-    for frame in range(FRAME_COUNTS[row]):
+@dataclass(frozen=True)
+class Frame:
+    left: int
+    top: int
+    width: int
+    height: int
+    anchor_x: float
+    anchor_y: float
+
+
+@dataclass(frozen=True)
+class Animation:
+    name: str
+    frames: tuple[Frame, ...]
+    frame_seconds: float = 0.12
+
+
+def grid_frame(column, row):
+    return Frame(column * 80, 422 - (row + 1) * 105, 80, 105, 40, 94)
+
+
+ANIMATIONS = (
+    Animation('걷기', tuple(grid_frame(i, 3) for i in range(8))),
+    Animation('달리기', tuple(grid_frame(i, 2) for i in range(6))),
+    Animation('점프', tuple(grid_frame(i, 1) for i in range(6))),
+    Animation('공격', tuple(grid_frame(i, 0) for i in range(8))),
+)
+
+
+def draw_frame(character, frame):
+    character.clip_draw(
+        frame.left,
+        character.h - frame.top - frame.height,
+        frame.width,
+        frame.height,
+        CANVAS_WIDTH / 2 + (frame.width / 2 - frame.anchor_x) * SCALE,
+        GROUND_Y + (frame.anchor_y - frame.height / 2) * SCALE,
+        frame.width * SCALE,
+        frame.height * SCALE,
+    )
+
+
+def play_animation(character, animation):
+    for frame in animation.frames:
         clear_canvas()
-        character.clip_draw(
-            (frame % FRAME_COUNTS[row]) * FRAME_WIDTH,
-            row * FRAME_HEIGHT,
-            FRAME_WIDTH,
-            FRAME_HEIGHT,
-            CANVAS_WIDTH // 2,
-            CANVAS_HEIGHT // 2,
-            FRAME_WIDTH * SCALE,
-            FRAME_HEIGHT * SCALE,
-        )
+        draw_frame(character, frame)
         update_canvas()
-        delay(0.05)
+        delay(animation.frame_seconds)
 
 
 def main():
     open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     try:
         character = load_image(str(Path(__file__).with_name('Robot_sprite_sheet.png')))
-        for row in (3, 2, 1, 0):
-            play_animation(character, row)
+        for animation in ANIMATIONS:
+            play_animation(character, animation)
     finally:
         close_canvas()
 
