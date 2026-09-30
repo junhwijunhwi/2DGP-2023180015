@@ -88,6 +88,7 @@ class AnimationPlayer:
         self.elapsed = 0.0
         self.completed_loops = 0
         self.waiting = False
+        self.paused = False
 
     @property
     def animation(self):
@@ -98,6 +99,8 @@ class AnimationPlayer:
         return self.animation.frames[self.frame_index]
 
     def update(self, dt):
+        if self.paused:
+            return
         self.elapsed += dt
         while True:
             duration = TRANSITION_PAUSE if self.waiting else self.animation.frame_seconds
@@ -119,12 +122,30 @@ class AnimationPlayer:
                     self.frame_index = 0
 
 
+    def select(self, index):
+        self.animation_index = index % len(self.animations)
+        self.frame_index = 0
+        self.elapsed = 0.0
+        self.completed_loops = 0
+        self.waiting = False
+        self.paused = False
+
+
 def handle_events(p2d, player):
     for event in p2d.get_events():
         if event.type == p2d.SDL_QUIT:
             return False
-        if event.type == p2d.SDL_KEYDOWN and event.key == p2d.SDLK_ESCAPE:
-            return False
+        if event.type == p2d.SDL_KEYDOWN:
+            if event.key == p2d.SDLK_ESCAPE:
+                return False
+            if event.key == p2d.SDLK_SPACE:
+                player.paused = not player.paused
+            elif event.key == p2d.SDLK_r:
+                player.select(player.animation_index)
+            elif event.key == p2d.SDLK_RIGHT:
+                player.select(player.animation_index + 1)
+            elif p2d.SDLK_1 <= event.key <= p2d.SDLK_4:
+                player.select(event.key - p2d.SDLK_1)
     return True
 
 
