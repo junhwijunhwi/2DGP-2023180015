@@ -1,5 +1,6 @@
 from pathlib import Path
 from dataclasses import dataclass
+from os import environ
 from time import perf_counter, sleep
 
 
@@ -149,12 +150,29 @@ def handle_events(p2d, player):
     return True
 
 
+def draw_status(font, player):
+    animation = player.animation
+    loop = min(player.completed_loops + 1, REPEAT_COUNT)
+    if player.paused:
+        state = '일시정지'
+    elif player.waiting:
+        state = f'1초 정지 · 다음 동작까지 {TRANSITION_PAUSE - player.elapsed:.1f}초'
+    else:
+        state = '재생 중'
+    font.draw(28, 568, f'애니메이션 뷰어  |  {animation.name}', (30, 40, 55))
+    font.draw(28, 538, f'반복 {loop} / {REPEAT_COUNT}   ·   프레임 {player.frame_index + 1} / {len(animation.frames)}   ·   {state}', (30, 40, 55))
+    font.draw(28, 42, 'Space 일시정지 / 재개   ·   R 다시 재생   ·   → 다음 동작', (30, 40, 55))
+    font.draw(28, 16, '1 걷기   2 달리기   3 점프   4 공격   ·   ESC 종료', (30, 40, 55))
+
+
 def main():
     import pico2d as p2d
 
     p2d.open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     try:
         character = p2d.load_image(str(Path(__file__).with_name('Robot_sprite_sheet.png')))
+        font_path = Path(environ.get('WINDIR', 'C:/Windows')) / 'Fonts' / 'malgun.ttf'
+        font = p2d.load_font(str(font_path), 20)
         player = AnimationPlayer()
         previous_time = perf_counter()
         while handle_events(p2d, player):
@@ -163,6 +181,7 @@ def main():
             previous_time = current_time
             p2d.clear_canvas()
             draw_frame(character, player.frame)
+            draw_status(font, player)
             p2d.update_canvas()
             sleep(1 / 120)
     except KeyboardInterrupt:
