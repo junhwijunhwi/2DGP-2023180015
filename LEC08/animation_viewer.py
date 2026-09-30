@@ -50,7 +50,14 @@ ANIMATIONS = (
         Frame(338, 116, 55, 84, 27.5, 84),
         Frame(405, 116, 55, 84, 27.5, 84),
     ), 0.08),
-    Animation('점프', tuple(grid_frame(i, 1) for i in range(6))),
+    Animation('점프', (
+        Frame(10, 222, 62, 84, 31, 84),
+        Frame(84, 222, 66, 80, 33, 84),
+        Frame(162, 220, 70, 70, 35, 86),
+        Frame(244, 220, 70, 62, 35, 86),
+        Frame(326, 220, 66, 70, 33, 86),
+        Frame(404, 222, 62, 80, 31, 84),
+    )),
     Animation('공격', tuple(grid_frame(i, 0) for i in range(8))),
 )
 
