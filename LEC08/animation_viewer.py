@@ -119,6 +119,15 @@ class AnimationPlayer:
                     self.frame_index = 0
 
 
+def handle_events(p2d, player):
+    for event in p2d.get_events():
+        if event.type == p2d.SDL_QUIT:
+            return False
+        if event.type == p2d.SDL_KEYDOWN and event.key == p2d.SDLK_ESCAPE:
+            return False
+    return True
+
+
 def main():
     import pico2d as p2d
 
@@ -127,7 +136,7 @@ def main():
         character = p2d.load_image(str(Path(__file__).with_name('Robot_sprite_sheet.png')))
         player = AnimationPlayer()
         previous_time = perf_counter()
-        while True:
+        while handle_events(p2d, player):
             current_time = perf_counter()
             player.update(current_time - previous_time)
             previous_time = current_time
