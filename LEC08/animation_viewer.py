@@ -32,7 +32,16 @@ def grid_frame(column, row):
 
 
 ANIMATIONS = (
-    Animation('걷기', tuple(grid_frame(i, 3) for i in range(8))),
+    Animation('걷기', (
+        Frame(10, 10, 62, 84, 31, 84),
+        Frame(84, 10, 70, 84, 35, 84),
+        Frame(166, 10, 72, 84, 36, 84),
+        Frame(250, 10, 70, 84, 35, 84),
+        Frame(332, 10, 62, 84, 31, 84),
+        Frame(406, 10, 54, 84, 27, 84),
+        Frame(472, 10, 52, 84, 26, 84),
+        Frame(536, 10, 54, 84, 27, 84),
+    )),
     Animation('달리기', tuple(grid_frame(i, 2) for i in range(6))),
     Animation('점프', tuple(grid_frame(i, 1) for i in range(6))),
     Animation('공격', tuple(grid_frame(i, 0) for i in range(8))),
