@@ -1,6 +1,7 @@
 from pathlib import Path
 from dataclasses import dataclass
 from os import environ
+from math import isfinite
 from time import perf_counter, sleep
 
 
@@ -21,12 +22,22 @@ class Frame:
     anchor_x: float
     anchor_y: float
 
+    def __post_init__(self):
+        if min(self.left, self.top) < 0 or min(self.width, self.height) <= 0:
+            raise ValueError('프레임 좌표는 음수가 아니고 크기는 양수여야 합니다.')
+        if not 0 <= self.anchor_x <= self.width or self.anchor_y < 0:
+            raise ValueError('프레임 기준점이 올바르지 않습니다.')
+
 
 @dataclass(frozen=True)
 class Animation:
     name: str
     frames: tuple[Frame, ...]
     frame_seconds: float = 0.12
+
+    def __post_init__(self):
+        if not self.frames or not isfinite(self.frame_seconds) or self.frame_seconds <= 0:
+            raise ValueError('애니메이션에는 프레임과 양수인 재생 간격이 필요합니다.')
 
 
 ANIMATIONS = (
@@ -68,6 +79,13 @@ ANIMATIONS = (
 )
 
 
+def validate_sheet(width, height, animations=ANIMATIONS):
+    for animation in animations:
+        for frame in animation.frames:
+            if frame.left + frame.width > width or frame.top + frame.height > height:
+                raise ValueError(f'{animation.name}: 프레임이 이미지 경계를 벗어납니다.')
+
+
 def draw_frame(character, frame):
     character.clip_draw(
         frame.left,
@@ -83,7 +101,9 @@ def draw_frame(character, frame):
 
 class AnimationPlayer:
     def __init__(self, animations=ANIMATIONS):
-        self.animations = animations
+        self.animations = tuple(animations)
+        if not self.animations:
+            raise ValueError('재생할 애니메이션이 없습니다.')
         self.animation_index = 0
         self.frame_index = 0
         self.elapsed = 0.0
@@ -100,6 +120,8 @@ class AnimationPlayer:
         return self.animation.frames[self.frame_index]
 
     def update(self, dt):
+        if not isfinite(dt) or dt < 0:
+            raise ValueError('경과 시간은 유한한 0 이상의 값이어야 합니다.')
         if self.paused:
             return
         self.elapsed += dt
@@ -216,12 +238,22 @@ def draw_status(p2d, font, player, korean=True):
 
 
 def main():
-    import pico2d as p2d
+    try:
+        import pico2d as p2d
+    except ModuleNotFoundError as error:
+        if error.name != 'pico2d':
+            raise
+        raise SystemExit('Pico2D가 필요합니다. python -m pip install -r LEC08/requirements.txt') from error
+
+    image_path = Path(__file__).resolve().with_name('Robot_sprite_sheet.png')
+    if not image_path.is_file():
+        raise SystemExit(f'스프라이트 이미지를 찾을 수 없습니다: {image_path}')
 
     p2d.SDL_SetHint(p2d.SDL_HINT_RENDER_SCALE_QUALITY, b'0')
     p2d.open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     try:
-        character = p2d.load_image(str(Path(__file__).with_name('Robot_sprite_sheet.png')))
+        character = p2d.load_image(str(image_path))
+        validate_sheet(character.w, character.h)
         font, korean = load_status_font(p2d)
         player = AnimationPlayer()
         previous_time = perf_counter()
