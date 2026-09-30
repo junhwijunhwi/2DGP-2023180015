@@ -1,7 +1,6 @@
 from pathlib import Path
 from dataclasses import dataclass
-
-from pico2d import *
+from time import perf_counter, sleep
 
 
 CANVAS_WIDTH = 800
@@ -79,22 +78,51 @@ def draw_frame(character, frame):
     )
 
 
-def play_animation(character, animation):
-    for frame in animation.frames:
-        clear_canvas()
-        draw_frame(character, frame)
-        update_canvas()
-        delay(animation.frame_seconds)
+class AnimationPlayer:
+    def __init__(self, animations=ANIMATIONS):
+        self.animations = animations
+        self.animation_index = 0
+        self.frame_index = 0
+        self.elapsed = 0.0
+
+    @property
+    def animation(self):
+        return self.animations[self.animation_index]
+
+    @property
+    def frame(self):
+        return self.animation.frames[self.frame_index]
+
+    def update(self, dt):
+        self.elapsed += dt
+        while self.elapsed + 1e-9 >= self.animation.frame_seconds:
+            self.elapsed = max(0.0, self.elapsed - self.animation.frame_seconds)
+            self.frame_index += 1
+            if self.frame_index == len(self.animation.frames):
+                self.frame_index = 0
+                self.animation_index = (self.animation_index + 1) % len(self.animations)
 
 
 def main():
-    open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+    import pico2d as p2d
+
+    p2d.open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     try:
-        character = load_image(str(Path(__file__).with_name('Robot_sprite_sheet.png')))
-        for animation in ANIMATIONS:
-            play_animation(character, animation)
+        character = p2d.load_image(str(Path(__file__).with_name('Robot_sprite_sheet.png')))
+        player = AnimationPlayer()
+        previous_time = perf_counter()
+        while True:
+            current_time = perf_counter()
+            player.update(current_time - previous_time)
+            previous_time = current_time
+            p2d.clear_canvas()
+            draw_frame(character, player.frame)
+            p2d.update_canvas()
+            sleep(1 / 120)
+    except KeyboardInterrupt:
+        pass
     finally:
-        close_canvas()
+        p2d.close_canvas()
 
 
 if __name__ == '__main__':
