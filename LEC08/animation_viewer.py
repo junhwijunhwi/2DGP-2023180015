@@ -218,8 +218,8 @@ def status_lines(player, korean=True):
 
 
 def draw_background(p2d, player):
-    p2d.SDL_SetRenderDrawColor(p2d.renderer, 238, 243, 249, 255)
-    p2d.SDL_RenderClear(p2d.renderer)
+    p2d.clear_canvas()
+    p2d.draw_rectangle(0, 0, 799, 599, 238, 243, 249, filled=True)
     p2d.draw_rectangle(0, 524, 799, 599, 255, 255, 255, filled=True)
     p2d.draw_rectangle(0, 0, 799, 64, 255, 255, 255, filled=True)
     p2d.draw_rectangle(0, 524, 5, 599, 24, 146, 173, filled=True)
@@ -231,7 +231,7 @@ def draw_background(p2d, player):
 
 def draw_status(p2d, font, player, korean=True):
     lines = status_lines(player, korean)
-    p2d.SDL_SetWindowTitle(p2d.window, f'{lines[0]} | {lines[1]}'.encode('utf-8'))
+    p2d.SDL_SetWindowTitle(p2d.pico2d.window, f'{lines[0]} | {lines[1]}'.encode('utf-8'))
     if font is not None:
         for y, line in zip((568, 538, 42, 16), lines):
             font.draw(28, y, line, (30, 40, 55))
@@ -251,6 +251,8 @@ def main():
 
     p2d.SDL_SetHint(p2d.SDL_HINT_RENDER_SCALE_QUALITY, b'0')
     p2d.open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+    character = None
+    font = None
     try:
         character = p2d.load_image(str(image_path))
         validate_sheet(character.w, character.h)
@@ -269,6 +271,10 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
+        if font is not None:
+            p2d.TTF_CloseFont(font.font)
+        if character is not None:
+            del character
         p2d.close_canvas()
 
 
