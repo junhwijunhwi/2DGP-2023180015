@@ -195,6 +195,18 @@ def status_lines(player, korean=True):
     )
 
 
+def draw_background(p2d, player):
+    p2d.SDL_SetRenderDrawColor(p2d.renderer, 238, 243, 249, 255)
+    p2d.SDL_RenderClear(p2d.renderer)
+    p2d.draw_rectangle(0, 524, 799, 599, 255, 255, 255, filled=True)
+    p2d.draw_rectangle(0, 0, 799, 64, 255, 255, 255, filled=True)
+    p2d.draw_rectangle(0, 524, 5, 599, 24, 146, 173, filled=True)
+    p2d.draw_rectangle(80, GROUND_Y - 3, 720, GROUND_Y - 2, 197, 209, 223, filled=True)
+    for i in range(REPEAT_COUNT):
+        color = (24, 146, 173) if i < player.completed_loops else (220, 229, 238)
+        p2d.draw_rectangle(634 + i * 29, 564, 656 + i * 29, 573, *color, filled=True)
+
+
 def draw_status(p2d, font, player, korean=True):
     lines = status_lines(player, korean)
     p2d.SDL_SetWindowTitle(p2d.window, f'{lines[0]} | {lines[1]}'.encode('utf-8'))
@@ -206,6 +218,7 @@ def draw_status(p2d, font, player, korean=True):
 def main():
     import pico2d as p2d
 
+    p2d.SDL_SetHint(p2d.SDL_HINT_RENDER_SCALE_QUALITY, b'0')
     p2d.open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     try:
         character = p2d.load_image(str(Path(__file__).with_name('Robot_sprite_sheet.png')))
@@ -216,7 +229,7 @@ def main():
             current_time = perf_counter()
             player.update(current_time - previous_time)
             previous_time = current_time
-            p2d.clear_canvas()
+            draw_background(p2d, player)
             draw_frame(character, player.frame)
             draw_status(p2d, font, player, korean)
             p2d.update_canvas()
