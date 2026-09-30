@@ -42,7 +42,14 @@ ANIMATIONS = (
         Frame(472, 10, 52, 84, 26, 84),
         Frame(536, 10, 54, 84, 27, 84),
     )),
-    Animation('달리기', tuple(grid_frame(i, 2) for i in range(6))),
+    Animation('달리기', (
+        Frame(10, 116, 62, 84, 31, 84),
+        Frame(84, 116, 78, 84, 39, 84),
+        Frame(174, 116, 78, 84, 39, 84),
+        Frame(264, 116, 62, 84, 31, 84),
+        Frame(338, 116, 55, 84, 27.5, 84),
+        Frame(405, 116, 55, 84, 27.5, 84),
+    ), 0.08),
     Animation('점프', tuple(grid_frame(i, 1) for i in range(6))),
     Animation('공격', tuple(grid_frame(i, 0) for i in range(8))),
 )
