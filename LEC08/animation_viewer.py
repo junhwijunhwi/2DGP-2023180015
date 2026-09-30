@@ -27,10 +27,6 @@ class Animation:
     frame_seconds: float = 0.12
 
 
-def grid_frame(column, row):
-    return Frame(column * 80, 422 - (row + 1) * 105, 80, 105, 40, 94)
-
-
 ANIMATIONS = (
     Animation('걷기', (
         Frame(10, 10, 62, 84, 31, 84),
@@ -58,7 +54,15 @@ ANIMATIONS = (
         Frame(326, 220, 66, 70, 33, 86),
         Frame(404, 222, 62, 80, 31, 84),
     )),
-    Animation('공격', tuple(grid_frame(i, 0) for i in range(8))),
+    Animation('공격', (
+        Frame(10, 328, 67, 84, 31, 84),
+        Frame(89, 328, 77, 84, 32, 84),
+        Frame(178, 328, 92, 84, 31, 84),
+        Frame(282, 328, 95, 84, 31, 84),
+        Frame(387, 328, 86, 84, 32, 84),
+        Frame(485, 328, 75, 84, 32, 84),
+        Frame(572, 328, 68, 84, 31, 84),
+    ), 0.10),
 )
 
 
