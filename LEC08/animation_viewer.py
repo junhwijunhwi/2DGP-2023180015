@@ -1,3 +1,4 @@
+"""Drill #8: 서로 다른 크기의 로봇 프레임을 중앙에서 순환 재생합니다."""
 from pathlib import Path
 from dataclasses import dataclass
 from os import environ
@@ -15,6 +16,7 @@ TRANSITION_PAUSE = 1.0
 
 @dataclass(frozen=True)
 class Frame:
+    """좌상단 기준 자르기 영역과 몸통/발 위치를 맞추는 기준점입니다."""
     left: int
     top: int
     width: int
@@ -87,6 +89,7 @@ def validate_sheet(width, height, animations=ANIMATIONS):
 
 
 def draw_frame(character, frame):
+    # 시트의 위쪽 기준 top을 Pico2D의 아래쪽 기준 bottom으로 변환합니다.
     character.clip_draw(
         frame.left,
         character.h - frame.top - frame.height,
@@ -100,6 +103,7 @@ def draw_frame(character, frame):
 
 
 class AnimationPlayer:
+    """5회 재생 → 마지막 프레임에서 1초 정지 → 다음 동작을 반복합니다."""
     def __init__(self, animations=ANIMATIONS):
         self.animations = tuple(animations)
         if not self.animations:
