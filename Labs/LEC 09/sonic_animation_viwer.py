@@ -1,11 +1,17 @@
 """소닉 스프라이트 시트의 동작을 순서대로 재생한다."""
 
+from pathlib import Path
 import pico2d
 from time import sleep
 
 
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
+
+
+def sprite_path():
+    """실행 위치와 관계없이 원본 스프라이트를 찾는다."""
+    return Path(__file__).resolve().parents[1] / "LEC08_Animation" / "sonic-sprite.png"
 
 
 def handle_events():
