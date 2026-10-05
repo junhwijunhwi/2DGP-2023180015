@@ -113,6 +113,34 @@ ANIMATIONS: tuple[Animation, ...] = (
 )
 
 
+class AnimationPlayer:
+    """동작의 현재 프레임과 경과 시간을 관리한다."""
+
+    def __init__(self, animations=ANIMATIONS):
+        if not animations:
+            raise ValueError("재생할 동작이 없습니다.")
+        self.animations = tuple(animations)
+        self.animation_index = 0
+        self.frame_index = 0
+        self.elapsed = 0.0
+
+    @property
+    def animation(self):
+        return self.animations[self.animation_index]
+
+    @property
+    def frame(self):
+        return self.animation.frames[self.frame_index]
+
+    def update(self, dt):
+        if dt < 0:
+            raise ValueError("경과 시간은 음수가 될 수 없습니다.")
+        self.elapsed += dt
+        while self.elapsed >= self.animation.frame_seconds:
+            self.elapsed -= self.animation.frame_seconds
+            self.frame_index = (self.frame_index + 1) % len(self.animation.frames)
+
+
 def validate_sheet(width, height):
     """정의한 모든 동작의 프레임이 이미지 안에 있는지 확인한다."""
     if len(ANIMATIONS) != len(ACTION_LAYOUT):
@@ -162,6 +190,7 @@ def main():
         except Exception as error:
             raise SystemExit(f"스프라이트 이미지를 불러오지 못했습니다: {image_path}") from error
         validate_sheet(sprite.w, sprite.h)
+        player = AnimationPlayer()
         running = True
         previous_time = perf_counter()
         while running:
@@ -169,8 +198,9 @@ def main():
             dt = now - previous_time
             previous_time = now
             running = handle_events()
+            player.update(dt)
             pico2d.clear_canvas()
-            draw_frame(sprite, ANIMATIONS[0].frames[0])
+            draw_frame(sprite, player.frame)
             pico2d.update_canvas()
             sleep(1 / 120)
     finally:
