@@ -125,6 +125,15 @@ def validate_sheet(width, height):
                 raise ValueError(f"{name}: 이미지 경계를 벗어난 프레임이 있습니다.")
 
 
+def draw_frame(sprite, frame):
+    """시트의 위쪽 기준 좌표를 Pico2D의 아래쪽 기준 좌표로 바꿔 그린다."""
+    sprite.clip_draw(
+        frame.x, sprite.h - frame.y - frame.height,
+        frame.width, frame.height,
+        CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2,
+    )
+
+
 def sprite_path():
     """실행 위치와 관계없이 원본 스프라이트를 찾는다."""
     return Path(__file__).resolve().parents[1] / "LEC08_Animation" / "sonic-sprite.png"
@@ -157,6 +166,7 @@ def main():
         while running:
             running = handle_events()
             pico2d.clear_canvas()
+            draw_frame(sprite, ANIMATIONS[0].frames[0])
             pico2d.update_canvas()
             sleep(1 / 120)
     finally:
