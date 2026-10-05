@@ -113,6 +113,18 @@ ANIMATIONS: tuple[Animation, ...] = (
 )
 
 
+def validate_sheet(width, height):
+    """정의한 모든 동작의 프레임이 이미지 안에 있는지 확인한다."""
+    if len(ANIMATIONS) != len(ACTION_LAYOUT):
+        raise ValueError("동작 목록의 개수가 시트 조사 결과와 다릅니다.")
+    for animation, (name, expected_count) in zip(ANIMATIONS, ACTION_LAYOUT):
+        if animation.name != name or len(animation.frames) != expected_count:
+            raise ValueError(f"{name}: 이름 또는 프레임 수가 맞지 않습니다.")
+        for frame in animation.frames:
+            if frame.x + frame.width > width or frame.y + frame.height > height:
+                raise ValueError(f"{name}: 이미지 경계를 벗어난 프레임이 있습니다.")
+
+
 def sprite_path():
     """실행 위치와 관계없이 원본 스프라이트를 찾는다."""
     return Path(__file__).resolve().parents[1] / "LEC08_Animation" / "sonic-sprite.png"
@@ -140,6 +152,7 @@ def main():
             sprite = pico2d.load_image(str(image_path))
         except Exception as error:
             raise SystemExit(f"스프라이트 이미지를 불러오지 못했습니다: {image_path}") from error
+        validate_sheet(sprite.w, sprite.h)
         running = True
         while running:
             running = handle_events()
