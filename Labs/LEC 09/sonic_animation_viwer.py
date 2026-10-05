@@ -9,6 +9,7 @@ from time import perf_counter, sleep
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
 REPEAT_COUNT = 5
+TRANSITION_PAUSE = 1.0
 
 # 원본 시트의 위쪽부터 아래쪽까지, 소닉 그림이 있는 열 개의 동작 행.
 # 제목(0~32행)과 크레딧 및 다른 캐릭터(472~524행)는 제외한다.
@@ -139,9 +140,16 @@ class AnimationPlayer:
         if dt < 0:
             raise ValueError("경과 시간은 음수가 될 수 없습니다.")
         self.elapsed += dt
-        while not self.waiting and self.elapsed >= self.animation.frame_seconds:
-            self.elapsed -= self.animation.frame_seconds
-            if self.frame_index + 1 < len(self.animation.frames):
+        while True:
+            duration = TRANSITION_PAUSE if self.waiting else self.animation.frame_seconds
+            if self.elapsed + 1e-9 < duration:
+                break
+            self.elapsed = max(0.0, self.elapsed - duration)
+            if self.waiting:
+                self.frame_index = 0
+                self.completed_loops = 0
+                self.waiting = False
+            elif self.frame_index + 1 < len(self.animation.frames):
                 self.frame_index += 1
             else:
                 self.completed_loops += 1
