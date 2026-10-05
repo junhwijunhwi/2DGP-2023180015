@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from dataclasses import dataclass
+from math import isfinite
 import pico2d
 from time import perf_counter, sleep
 
@@ -49,7 +50,7 @@ class Animation:
     frame_seconds: float = 0.10
 
     def __post_init__(self):
-        if not self.frames or self.frame_seconds <= 0:
+        if not self.frames or not isfinite(self.frame_seconds) or self.frame_seconds <= 0:
             raise ValueError("동작에는 프레임과 양수 재생 간격이 필요합니다.")
 
 
@@ -138,8 +139,8 @@ class AnimationPlayer:
         return self.animation.frames[self.frame_index]
 
     def update(self, dt):
-        if dt < 0:
-            raise ValueError("경과 시간은 음수가 될 수 없습니다.")
+        if not isfinite(dt) or dt < 0:
+            raise ValueError("경과 시간은 유한한 양수 또는 0이어야 합니다.")
         self.elapsed += dt
         while True:
             duration = TRANSITION_PAUSE if self.waiting else self.animation.frame_seconds
@@ -171,6 +172,8 @@ def validate_sheet(width, height):
         for frame in animation.frames:
             if frame.x + frame.width > width or frame.y + frame.height > height:
                 raise ValueError(f"{name}: 이미지 경계를 벗어난 프레임이 있습니다.")
+            if frame.width * SCALE > CANVAS_WIDTH or frame.height * SCALE > CANVAS_HEIGHT:
+                raise ValueError(f"{name}: 확대된 프레임이 화면을 벗어납니다.")
 
 
 def draw_frame(sprite, frame):
@@ -222,6 +225,9 @@ def main():
             running = handle_events()
             player.update(dt)
             pico2d.clear_canvas()
+            pico2d.draw_rectangle(
+                0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 238, 243, 249, filled=True
+            )
             draw_frame(sprite, player.frame)
             pico2d.update_canvas()
             sleep(1 / 120)
