@@ -50,7 +50,16 @@ class Animation:
             raise ValueError("동작에는 프레임과 양수 재생 간격이 필요합니다.")
 
 
-ANIMATIONS: tuple[Animation, ...] = ()
+ANIMATIONS: tuple[Animation, ...] = (
+    Animation("걷기", (
+        Frame(1, 39, 29, 39), Frame(31, 40, 26, 38),
+        Frame(58, 39, 29, 39), Frame(87, 40, 29, 38),
+        Frame(118, 40, 30, 38), Frame(150, 40, 30, 38),
+        Frame(182, 40, 29, 38), Frame(211, 39, 30, 38),
+        Frame(241, 39, 28, 38), Frame(270, 45, 24, 32),
+        Frame(302, 51, 29, 26),
+    ), 0.12),
+)
 
 
 def sprite_path():
