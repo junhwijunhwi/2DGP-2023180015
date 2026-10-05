@@ -8,6 +8,7 @@ from time import perf_counter, sleep
 
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
+SCALE = 8
 REPEAT_COUNT = 5
 TRANSITION_PAUSE = 1.0
 
@@ -178,6 +179,7 @@ def draw_frame(sprite, frame):
         frame.x, sprite.h - frame.y - frame.height,
         frame.width, frame.height,
         CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2,
+        frame.width * SCALE, frame.height * SCALE,
     )
 
 
@@ -202,6 +204,7 @@ def main():
     if not image_path.is_file():
         raise SystemExit(f"스프라이트 이미지를 찾을 수 없습니다: {image_path}")
 
+    pico2d.SDL_SetHint(pico2d.SDL_HINT_RENDER_SCALE_QUALITY, b"0")
     pico2d.open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     try:
         try:
