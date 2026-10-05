@@ -12,6 +12,8 @@ CANVAS_HEIGHT = 600
 SCALE = 4
 REPEAT_COUNT = 5
 TRANSITION_PAUSE = 1.0
+MOVE_LEFT = 100
+MOVE_RIGHT = CANVAS_WIDTH - MOVE_LEFT
 
 # 원본 시트의 위쪽부터 아래쪽까지, 소닉 그림이 있는 열 개의 동작 행.
 # 제목(0~32행)과 크레딧 및 다른 캐릭터(472~524행)는 제외한다.
@@ -48,10 +50,16 @@ class Animation:
     name: str
     frames: tuple[Frame, ...]
     frame_seconds: float = 0.10
+    move_speed: float = 0.0
+    hop_height: float = 0.0
 
     def __post_init__(self):
         if not self.frames or not isfinite(self.frame_seconds) or self.frame_seconds <= 0:
             raise ValueError("동작에는 프레임과 양수 재생 간격이 필요합니다.")
+        if not isfinite(self.move_speed) or self.move_speed < 0:
+            raise ValueError("이동 속도는 유한한 0 이상의 값이어야 합니다.")
+        if not isfinite(self.hop_height) or self.hop_height < 0:
+            raise ValueError("점프 높이는 유한한 0 이상의 값이어야 합니다.")
 
 
 ANIMATIONS: tuple[Animation, ...] = (
@@ -62,7 +70,7 @@ ANIMATIONS: tuple[Animation, ...] = (
         Frame(182, 40, 29, 38), Frame(211, 39, 30, 38),
         Frame(241, 39, 28, 38), Frame(270, 45, 24, 32),
         Frame(302, 51, 29, 26),
-    ), 0.12),
+    ), 0.12, move_speed=80),
     Animation("달리기", (
         Frame(8, 80, 26, 37), Frame(37, 80, 27, 37),
         Frame(65, 80, 31, 38), Frame(97, 80, 37, 37),
@@ -70,34 +78,34 @@ ANIMATIONS: tuple[Animation, ...] = (
         Frame(206, 79, 26, 38), Frame(238, 80, 24, 37),
         Frame(263, 80, 30, 37), Frame(295, 80, 36, 37),
         Frame(334, 80, 32, 36), Frame(370, 79, 29, 38),
-    ), 0.08),
+    ), 0.08, move_speed=180),
     Animation("점프", (
         Frame(1, 124, 33, 40), Frame(39, 124, 35, 39),
         Frame(89, 125, 35, 38), Frame(130, 121, 34, 42),
         Frame(181, 122, 34, 41), Frame(228, 122, 33, 40),
-    )),
+    ), move_speed=90, hop_height=110),
     Animation("공중 회전", (
         Frame(1, 169, 29, 30), Frame(35, 167, 29, 31),
         Frame(67, 169, 30, 29), Frame(98, 169, 31, 29),
         Frame(131, 168, 29, 30), Frame(162, 168, 29, 31),
         Frame(193, 170, 30, 29), Frame(230, 170, 31, 29),
         Frame(268, 170, 30, 30),
-    ), 0.08),
+    ), 0.08, move_speed=80, hop_height=75),
     Animation("공 모양", (
         Frame(1, 206, 30, 27), Frame(36, 206, 29, 27),
         Frame(70, 206, 29, 27), Frame(105, 206, 29, 27),
         Frame(139, 206, 29, 27), Frame(174, 206, 29, 27),
-    ), 0.08),
+    ), 0.08, move_speed=140),
     Animation("이동", (
         Frame(1, 239, 29, 35), Frame(36, 239, 30, 35),
         Frame(74, 239, 31, 35), Frame(111, 238, 31, 36),
         Frame(149, 239, 30, 35), Frame(186, 238, 31, 36),
-    ), 0.10),
+    ), 0.10, move_speed=120),
     Animation("스핀", (
         Frame(1, 283, 29, 35), Frame(36, 283, 30, 35),
         Frame(72, 286, 39, 31), Frame(123, 285, 39, 32),
         Frame(172, 286, 39, 31), Frame(218, 285, 38, 32),
-    ), 0.08),
+    ), 0.08, move_speed=150),
     Animation("피격", (
         Frame(1, 326, 24, 45), Frame(31, 327, 29, 44),
         Frame(65, 327, 20, 44), Frame(90, 327, 25, 43),
@@ -109,7 +117,7 @@ ANIMATIONS: tuple[Animation, ...] = (
         Frame(64, 379, 31, 36), Frame(99, 377, 33, 38),
         Frame(136, 379, 32, 36), Frame(176, 379, 33, 36),
         Frame(217, 379, 33, 36), Frame(254, 378, 33, 36),
-    ), 0.10),
+    ), 0.10, move_speed=90),
     Animation("마무리", (
         Frame(6, 429, 34, 40), Frame(49, 426, 34, 43),
         Frame(96, 427, 23, 39), Frame(125, 427, 23, 39),
@@ -129,6 +137,8 @@ class AnimationPlayer:
         self.elapsed = 0.0
         self.completed_loops = 0
         self.waiting = False
+        self.x = CANVAS_WIDTH / 2
+        self.direction = 1
 
     @property
     def animation(self):
@@ -138,15 +148,47 @@ class AnimationPlayer:
     def frame(self):
         return self.animation.frames[self.frame_index]
 
+    @property
+    def y(self):
+        """점프 동작은 프레임 주기 안에서 포물선 높이를 적용한다."""
+        if self.waiting or self.animation.hop_height == 0:
+            return CANVAS_HEIGHT / 2
+        phase = (
+            self.frame_index + self.elapsed / self.animation.frame_seconds
+        ) / len(self.animation.frames)
+        return CANVAS_HEIGHT / 2 + 4 * self.animation.hop_height * phase * (1 - phase)
+
+    def move(self, seconds):
+        """가장자리에서 튕기며 이동하고 진행 방향을 보존한다."""
+        if self.waiting or self.animation.move_speed == 0:
+            return
+        span = MOVE_RIGHT - MOVE_LEFT
+        phase = self.x - MOVE_LEFT
+        if self.direction < 0:
+            phase = 2 * span - phase
+        phase = (phase + self.animation.move_speed * seconds) % (2 * span)
+        if phase < span:
+            self.x = MOVE_LEFT + phase
+            self.direction = 1
+        else:
+            self.x = MOVE_RIGHT - (phase - span)
+            self.direction = -1
+
     def update(self, dt):
         if not isfinite(dt) or dt < 0:
             raise ValueError("경과 시간은 유한한 양수 또는 0이어야 합니다.")
-        self.elapsed += dt
+        remaining = dt
         while True:
             duration = TRANSITION_PAUSE if self.waiting else self.animation.frame_seconds
-            if self.elapsed + 1e-9 < duration:
+            until_next = max(0.0, duration - self.elapsed)
+            if remaining + 1e-9 < until_next:
+                self.move(remaining)
+                self.elapsed += remaining
                 break
-            self.elapsed = max(0.0, self.elapsed - duration)
+            step = min(remaining, until_next)
+            self.move(step)
+            remaining = max(0.0, remaining - step)
+            self.elapsed = 0.0
             if self.waiting:
                 self.animation_index = (self.animation_index + 1) % len(self.animations)
                 self.frame_index = 0
@@ -160,6 +202,8 @@ class AnimationPlayer:
                     self.waiting = True
                 else:
                     self.frame_index = 0
+            if remaining <= 1e-9:
+                break
 
 
 def validate_sheet(width, height):
@@ -176,14 +220,15 @@ def validate_sheet(width, height):
                 raise ValueError(f"{name}: 확대된 프레임이 화면을 벗어납니다.")
 
 
-def draw_frame(sprite, frame):
-    """시트의 위쪽 기준 좌표를 Pico2D의 아래쪽 기준 좌표로 바꿔 그린다."""
-    sprite.clip_draw(
-        frame.x, sprite.h - frame.y - frame.height,
-        frame.width, frame.height,
-        CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2,
-        frame.width * SCALE, frame.height * SCALE,
-    )
+def draw_frame(sprite, frame, x=CANVAS_WIDTH / 2, y=CANVAS_HEIGHT / 2,
+               facing_left=False):
+    """시트 좌표를 변환하고 이동 위치·방향에 맞춰 그린다."""
+    source = (frame.x, sprite.h - frame.y - frame.height, frame.width, frame.height)
+    size = (frame.width * SCALE, frame.height * SCALE)
+    if facing_left:
+        sprite.clip_composite_draw(*source, 0, "h", x, y, *size)
+    else:
+        sprite.clip_draw(*source, x, y, *size)
 
 
 def sprite_path():
@@ -228,7 +273,7 @@ def main():
             pico2d.draw_rectangle(
                 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, 238, 243, 249, filled=True
             )
-            draw_frame(sprite, player.frame)
+            draw_frame(sprite, player.frame, player.x, player.y, player.direction < 0)
             pico2d.update_canvas()
             sleep(1 / 120)
     finally:
