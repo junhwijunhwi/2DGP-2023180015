@@ -123,6 +123,7 @@ class AnimationPlayer:
         self.animation_index = 0
         self.frame_index = 0
         self.elapsed = 0.0
+        self.completed_loops = 0
 
     @property
     def animation(self):
@@ -138,7 +139,11 @@ class AnimationPlayer:
         self.elapsed += dt
         while self.elapsed >= self.animation.frame_seconds:
             self.elapsed -= self.animation.frame_seconds
-            self.frame_index = (self.frame_index + 1) % len(self.animation.frames)
+            if self.frame_index + 1 < len(self.animation.frames):
+                self.frame_index += 1
+            else:
+                self.completed_loops += 1
+                self.frame_index = 0
 
 
 def validate_sheet(width, height):
