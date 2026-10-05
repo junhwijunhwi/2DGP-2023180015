@@ -9,7 +9,7 @@ from time import perf_counter, sleep
 
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
-SCALE = 8
+SCALE = 4
 REPEAT_COUNT = 5
 TRANSITION_PAUSE = 1.0
 
