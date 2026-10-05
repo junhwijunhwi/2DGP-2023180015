@@ -1,6 +1,7 @@
 """소닉 스프라이트 시트의 동작을 순서대로 재생한다."""
 
 from pathlib import Path
+from dataclasses import dataclass
 import pico2d
 from time import sleep
 
@@ -22,6 +23,34 @@ ACTION_LAYOUT = (
     ("방향 전환", 8),
     ("마무리", 4),
 )
+
+
+@dataclass(frozen=True)
+class Frame:
+    """시트의 왼쪽 위를 원점으로 측정한 자르기 영역."""
+
+    x: int
+    y: int
+    width: int
+    height: int
+
+    def __post_init__(self):
+        if min(self.x, self.y) < 0 or min(self.width, self.height) <= 0:
+            raise ValueError("프레임 좌표와 크기가 올바르지 않습니다.")
+
+
+@dataclass(frozen=True)
+class Animation:
+    name: str
+    frames: tuple[Frame, ...]
+    frame_seconds: float = 0.10
+
+    def __post_init__(self):
+        if not self.frames or self.frame_seconds <= 0:
+            raise ValueError("동작에는 프레임과 양수 재생 간격이 필요합니다.")
+
+
+ANIMATIONS: tuple[Animation, ...] = ()
 
 
 def sprite_path():
