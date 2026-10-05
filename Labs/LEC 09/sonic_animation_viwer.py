@@ -3,7 +3,7 @@
 from pathlib import Path
 from dataclasses import dataclass
 import pico2d
-from time import sleep
+from time import perf_counter, sleep
 
 
 CANVAS_WIDTH = 800
@@ -163,7 +163,11 @@ def main():
             raise SystemExit(f"스프라이트 이미지를 불러오지 못했습니다: {image_path}") from error
         validate_sheet(sprite.w, sprite.h)
         running = True
+        previous_time = perf_counter()
         while running:
+            now = perf_counter()
+            dt = now - previous_time
+            previous_time = now
             running = handle_events()
             pico2d.clear_canvas()
             draw_frame(sprite, ANIMATIONS[0].frames[0])
