@@ -26,8 +26,16 @@ def handle_events():
 
 def main():
     """애니메이션 뷰어의 실행 진입점."""
+    image_path = sprite_path()
+    if not image_path.is_file():
+        raise SystemExit(f"스프라이트 이미지를 찾을 수 없습니다: {image_path}")
+
     pico2d.open_canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     try:
+        try:
+            sprite = pico2d.load_image(str(image_path))
+        except Exception as error:
+            raise SystemExit(f"스프라이트 이미지를 불러오지 못했습니다: {image_path}") from error
         running = True
         while running:
             running = handle_events()
@@ -35,6 +43,8 @@ def main():
             pico2d.update_canvas()
             sleep(1 / 120)
     finally:
+        if "sprite" in locals():
+            del sprite
         pico2d.close_canvas()
 
 
