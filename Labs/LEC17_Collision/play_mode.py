@@ -26,13 +26,22 @@ def handle_events():
 
 def init():
     global boy
+    global balls
 
+    # 객체들을 생성
     boy = Boy()
-    game_world.add_oject(boy)
-
     grass = Grass()
+    balls = [Ball(random.randint(100, 1500), 60, 0) for _ in range(30)]
+
+    # 생성된 객체들을 game_world에 추가
+    game_world.add_objects(balls, 1)
+    game_world.add_oject(boy)
     game_world.add_oject(grass, 0)
 
+    # 생성된 객체들의 충돌 관계를 등록
+    game_world.add_collision_pairs("boy:ball",boy,None)
+    for ball in balls:
+        game_world.add_collision_pairs("boy:ball",None,ball)
 
 def pause():
     boy.pause()
@@ -50,7 +59,7 @@ def finish():
 
 def update():
     game_world.update()
-
+    game_world.handle_collision()
 def render():
     clear_canvas()
     game_world.render()

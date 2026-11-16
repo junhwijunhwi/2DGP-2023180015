@@ -5,6 +5,7 @@ class Grass:
         self.image = load_image('grass.png')
         self.ruler_image = load_image('ruler.png')
 
+
     def update(self):
         pass
 
@@ -12,5 +13,9 @@ class Grass:
         self.image.draw(400, 30)
         self.image.draw(1200, 30)
         self.ruler_image.draw(800, 350)
+        draw_rectangle(*self.get_bb())
+        
+    def get_bb(self):
+        return 0,0,1600-1,50
 
 
