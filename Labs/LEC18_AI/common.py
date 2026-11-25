@@ -3,3 +3,5 @@
 #         (from common import boy 는 import 시점의 값(None)이 복사되므로 사용하지 않는다.)
 
 boy = None
+zombie = None
+INTERACTION_RADIUS = 300.0

@@ -1,10 +1,12 @@
 from pico2d import *
+import math
 
 from sdl2 import (SDL_KEYDOWN, SDL_KEYUP, SDLK_LEFT, SDLK_RIGHT,
                   SDLK_UP, SDLK_DOWN)
 from transitions import Machine
 
 import game_framework
+import common
 
 # 달리기 속력을 시속 km에서 초속 m, 다시 초당 픽셀로 변환한다.
 # 좀비(10km/h)에게서 도망칠 수 있도록 소년이 더 빠르다.
@@ -117,6 +119,25 @@ class Boy:
             self.stop_run()
 
     def update(self):
+        # 위험이 사라지면 현재 눌린 방향키 조작으로 즉시 돌아간다.
+        self.xdir = int(SDLK_RIGHT in self.pressed_keys) - int(SDLK_LEFT in self.pressed_keys)
+        self.ydir = int(SDLK_UP in self.pressed_keys) - int(SDLK_DOWN in self.pressed_keys)
+        zombie = common.zombie
+        if zombie is not None and self.ball_count < zombie.ball_count:
+            dx, dy = self.x - zombie.x, self.y - zombie.y
+            distance = math.hypot(dx, dy)
+            if distance <= common.INTERACTION_RADIUS:
+                if distance == 0:
+                    dx, dy, distance = -1.0, 0.0, 1.0
+                self.xdir, self.ydir = dx / distance, dy / distance
+
+        if self.xdir != 0:
+            self.face_dir = 1 if self.xdir > 0 else -1
+        if self.xdir != 0 or self.ydir != 0:
+            if self.state == 'IDLE':
+                self.start_run()
+        elif self.state == 'RUN':
+            self.stop_run()
         self.states[self.state].do(self)
 
     def draw(self):

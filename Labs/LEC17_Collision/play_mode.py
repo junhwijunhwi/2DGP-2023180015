@@ -37,11 +37,15 @@ def init():
     game_world.add_objects(balls, 1)
     game_world.add_oject(boy)
     game_world.add_oject(grass, 0)
-
+    zombies = [Zombie() for _ in range(4)]
+    game_world.add_objects(zombies,1)
     # 생성된 객체들의 충돌 관계를 등록
     game_world.add_collision_pairs("boy:ball",boy,None)
     for ball in balls:
         game_world.add_collision_pairs("boy:ball",None,ball)
+
+    
+
 
 def pause():
     boy.pause()

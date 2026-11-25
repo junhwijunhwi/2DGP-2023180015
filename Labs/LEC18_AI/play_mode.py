@@ -6,6 +6,7 @@ from ground import Ground
 from boy import Boy
 from ball import Ball
 from zombie import Zombie
+from blackboard import Blackboard
 
 
 def handle_events():
@@ -32,7 +33,11 @@ def init():
     common.boy = Boy()
     game_world.add_oject(common.boy)
 
-    zombie = Zombie(300, 300)
+    blackboard = Blackboard()
+    game_world.add_oject(blackboard, 2)  # 다른 객체 위에 블랙보드를 표시한다.
+
+    zombie = Zombie(blackboard, 300, 300)
+    common.zombie = zombie
     game_world.add_oject(zombie)
 
     game_world.add_collision_pair('boy:ball', common.boy, None)
@@ -53,6 +58,7 @@ def resume():
 def finish():
     game_world.clear()
     common.boy = None
+    common.zombie = None
 
 
 def update():
